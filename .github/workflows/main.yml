@@ -1,0 +1,28 @@
+name: Deploy to Google Cloud Functions
+
+on:
+  push:
+    branches:
+      - main  # 当代码推送到主分支时触发此工作流程
+
+env:
+  PROJECT_ID: sjtu-captcha-ocr-2025 # <-- 将此ID替换为你的Google Cloud项目ID
+  FUNCTION_NAME: ocr-captcha
+  REGION: us-central1 # <-- 替换为你选择的区域
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          # 🚨🚨🚨 重要：你需要手动在GitHub Secrets中设置这个密钥 🚨🚨🚨
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Deploy to Cloud Functions
+        run: gcloud functions deploy ${{ env.FUNCTION_NAME }} --runtime python311 --trigger-http --allow-unauthenticated --region ${{ env.REGION }} --source .
